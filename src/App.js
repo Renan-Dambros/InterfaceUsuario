@@ -12,12 +12,12 @@ import {
   IonCardSubtitle,
   IonText,
   IonMenuButton,
-  IonAlert
+  IonAlert,
+  IonModal,
+  IonCardContent
 } from '@ionic/react';
 
 function App() {
-
-const [isOpen, setIsOpen] = useState(false);
 
  const [imageUrl, setImageUrl] = useState('');
 
@@ -31,6 +31,12 @@ const [isOpen, setIsOpen] = useState(false);
     fetchRandomImage();
   }, []);
 
+  const generateRandomImage = () => {
+    // Gerar uma URL de imagem aleatória a partir da API 'https://pic.re/image'
+    const randomImageUrl = 'https://pic.re/image?random=' + Math.random();
+    setImageUrl(randomImageUrl);
+  };
+
   return (
 
     <IonPage style={{ display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center' }}>
@@ -38,16 +44,10 @@ const [isOpen, setIsOpen] = useState(false);
         <IonCard style={{ paddingBottom: 10, paddingTop:10, backgroundColor: '#DCDCDC', width:500, borderStyle:'solid', borderColor:'#A9A9A9', borderTop:0, borderLeft:0, borderRight:0, borderWidth:0.2 }}>
         <IonCardTitle style={{ fontSize: 24, fontWeight: 'bold', color: '#0000CD' }}>Bem-vindo ao Meu Site</IonCardTitle>
         <br></br><br></br><IonText style={{color:'green'}}>Este é um parágrafo de exemplo </IonText>
-       I<br></br><br></br><IonButton color="primary" >Clique aqui</IonButton>
-        <br></br><br></br><IonButton onClick={() => setIsOpen(true)}>Click Me</IonButton>
-      <IonAlert
-        isOpen={isOpen}
-        header="Alert"
-        subHeader="Important message"
-        message="This is an alert!"
-        buttons={['OK']}
-        onDidDismiss={() => setIsOpen(false)}
-      ></IonAlert>
+        <br></br><br></br><IonButton onClick={generateRandomImage}>Click Me</IonButton>
+        <IonCardContent style={{display: 'flex', justifyContent: 'center', alignItems: 'center'}}>      
+        <IonImg src={imageUrl} style={{ width: '400px', height: '300px' }}></IonImg>
+        </IonCardContent>  
       </IonCard>
 
       <IonCard style={{ paddingBottom: 10, paddingTop:10 ,backgroundColor: '#DCDCDC', width:500, borderStyle: 'solid', borderColor: '#A9A9A9', borderTop:0, borderLeft:0, borderRight:0, borderWidth:0.2, }}>
