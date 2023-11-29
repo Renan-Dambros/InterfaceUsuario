@@ -1,0 +1,132 @@
+#weather-container {
+  text-align: center;
+  align-items: center;
+}
+
+.weather-list {
+  display: flex;
+  list-style: none;
+  margin-bottom: 50px;
+  justify-content: center;
+  height: 300px
+}
+
+.weather-item {
+  margin-bottom: 10px;
+  margin-left: 0px;
+  margin-right: 0px;
+  padding-right: 30px;
+  padding-left: 30px;
+  border-right: 1px solid #ccc;
+  border-left: 1px solid #ccc;
+}
+
+.weather-item:hover {
+  background-color: #ccc;
+}
+
+.extra-info {
+  display: none;
+  margin-top: 10px;
+  transition: all 0.3s ease-in-out;
+}
+
+.btn-show-info {
+  cursor: pointer;
+  background-color: #4CAF50;
+  color: #fff;
+  padding: 8px 16px;
+  font: inherit;
+  outline: none;
+  border: none;
+  border-radius: 4px;
+  transition: background-color 0.3s ease-in-out, color 0.3s ease-in-out, transform 0.3s ease-in-out;
+}
+
+.btn-show-info:hover {
+  background-color: #45a049;
+}
+
+.weather-item {
+  perspective: 1000px;
+  transition: transform 0.5s;
+}
+
+.weather-item:hover {
+  transform: rotateY(20deg);
+}
+
+.extra-info {
+  display: none;
+  transform: rotateY(-20deg);
+}
+
+.weather-item:hover .extra-info {
+  display: block;
+}
+
+#weather-container {
+  text-align: center;
+  align-items: center;
+}
+
+.weather-list {
+  display: flex;
+  list-style: none;
+  margin-bottom: 50px;
+  justify-content: center;
+}
+
+.weather-item {
+  margin-bottom: 10px;
+  margin-left: 0px;
+  margin-right: 10px;
+  padding-right: 30px;
+  padding-left: 30px;
+  border-right: 1px solid #ccc;
+  border-left: 1px solid #ccc;
+  transition: transform 0.3s ease-in-out, background-color 0.3s ease-in-out, box-shadow 0.3s ease-in-out;
+  background-color: white;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
+  transform: translateY(0);
+}
+
+.weather-item:hover {
+  background-color: #ccc;
+  transform: translateY(-5px);
+}
+
+/* Modal Styles */
+.modal {
+  display: none;
+  position: fixed;
+  z-index: 1;
+  left: 0;
+  top: 0;
+  width: 100%;
+  height: 100%;
+  overflow: auto;
+  background-color: rgba(0, 0, 0, 0.5);
+}
+
+.modal-content {
+  background-color: #fefefe;
+  margin: 15% auto;
+  padding: 20px;
+  border: 1px solid #888;
+  width: 20%;
+}
+
+.close {
+  color: #aaa;
+  float: right;
+  font-size: 28px;
+  font-weight: bold;
+}
+
+.close:hover,
+.close:focus {
+  color: black;
+  text-decoration: none;
+  cursor: pointer;
+}

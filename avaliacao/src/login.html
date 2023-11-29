@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="icon" href="../imagens/fol.png" type="image/png">
+    <title>Login</title>
+    <link rel="stylesheet" href="login.css">
+</head>
+<body>
+
+    <div id="content-container" class="principal">
+        <div id="login-container" class="card">
+            <div class="title">LOGIN</div>
+
+            <div class="input-item">
+                <input type="text" placeholder="Enter Login" id="login" required
+                    style="outline: none;" oninput="resetError(this)"><br>
+                <span id="loginError" style="color: red;"></span>
+            </div>
+
+            <div class="input-item">
+                <input type="password" placeholder="Password" id="senha" required
+                    style="outline: none;" oninput="resetError(this)"><br>
+                <span id="senhaError" style="color: red;"></span>
+            </div>
+
+            <button onclick="autenticarUsuario()" class="button">Entrar</button>
+
+            <div class="divider"></div>
+
+            <div class="signup-text">Não possui conta?</div>
+            <button onclick="showCadastro()" class="button2">Cadastrar</button>
+
+            <div id="mensagemErro" style="color: red; text-align: center;"></div>
+        </div>
+    </div>
+
+    <div id="initial-card-container" class="initial-card" style="display: none;">
+        <div style="width: 100vw; height: 100vh; padding: 0; margin: 0;">
+            <img src='../imagens/fundo.jpg' style="width: 100%; height: 100%; object-fit: cover;"
+                alt="Background Image">
+            <div
+                style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); text-align: center; font-size: 4em;">
+                <span style="color: #1c5717; font-weight: bold;">Agro</span>
+                <span style="color: blue; font-weight: bold;">Uni</span>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Carregar usuários do localStorage
+        var usuarios = JSON.parse(localStorage.getItem('usuarios')) || [];
+
+        function autenticarUsuario() {
+            // Obter os elementos de entrada e mensagens de erro
+            var login = document.getElementById("login");
+            var senha = document.getElementById("senha");
+            var loginError = document.getElementById("loginError");
+            var senhaError = document.getElementById("senhaError");
+            var mensagemErro = document.getElementById("mensagemErro");
+
+            // Limpar mensagens de erro
+            loginError.textContent = "";
+            senhaError.textContent = "";
+            mensagemErro.textContent = "";
+
+            // Verificar validade dos campos
+            if (!login.checkValidity()) {
+                loginError.textContent = "Campo obrigatório";
+                login.classList.add("error");
+            } else {
+                login.classList.remove("error");
+            }
+
+            if (!senha.checkValidity()) {
+                senhaError.textContent = "Campo obrigatório";
+                senha.classList.add("error");
+            } else {
+                senha.classList.remove("error");
+            }
+
+            // Se os campos são válidos, continuar com a lógica existente
+            if (login.checkValidity() && senha.checkValidity()) {
+                // Verificar se as credenciais estão corretas
+                var usuarioEncontrado = usuarios.find(function (usuario) {
+                    return usuario.nome === login.value && usuario.senha === senha.value;
+                });
+
+                if (usuarioEncontrado) {
+                    // Credenciais corretas, exibir o initial card
+                    document.getElementById("login-container").style.display = "none";
+                    document.getElementById("initial-card-container").style.display = "block";
+
+                    // Aguardar 5 segundos e redirecionar para index.html
+                    setTimeout(function () {
+                        window.location.href = 'index.html';
+                    }, 5000);
+                } else {
+                    // Credenciais incorretas, exibir mensagem de erro
+                    mensagemErro.textContent = "Credenciais incorretas. Tente novamente.";
+                }
+            }
+        }
+
+        function showCadastro() {
+            window.location.href = 'cadastro.html';
+        }
+
+        function resetError(element) {
+            element.classList.remove("error");
+            var errorId = element.id + "Error";
+            document.getElementById(errorId).textContent = "";
+        }
+        localStorage.removeItem('iframe_src');
+    </script>
+</body>
+</html>
