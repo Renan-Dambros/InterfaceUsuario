@@ -1,0 +1,54 @@
+#map {
+    height: 400px;
+    width: 100%;
+}
+
+#areaResult {
+    position: absolute;
+    bottom: 10px;
+    left: 10px;
+    background-color: white;
+    padding: 10px;
+    border: 1px solid #ccc;
+    display: none;
+    z-index: 999;
+}
+
+#centerCoordinates {
+    position: absolute;
+    bottom: 60px;
+    left: 10px;
+    background-color: white;
+    padding: 10px;
+    border: 1px solid #ccc;
+    display: none;
+    z-index: 999;
+}
+
+#pointValues {
+    position: absolute;
+    bottom: 110px;
+    left: 10px;
+    background-color: white;
+    padding: 10px;
+    border: 1px solid #ccc;
+    display: none;
+    z-index: 999;
+}
+
+.btn-show-info {
+    cursor: pointer;
+    background-color: #4CAF50;
+    color: #fff;
+    padding: 7px;
+    font: inherit;
+    outline: none;
+    border: none;
+    border-radius: 4px;
+    transition: background-color 0.3s ease-in-out, color 0.3s ease-in-out, transform 0.3s ease-in-out;
+}
+
+.cor_inp{
+    padding-bottom: 20px;
+}
+

@@ -1,0 +1,350 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mapa Interativo com Leaflet</title>
+    <style>
+        #map {
+            height: 400px;
+            width: 100%;
+        }
+
+        #areaResult {
+            position: absolute;
+            bottom: 10px;
+            left: 10px;
+            background-color: white;
+            padding: 10px;
+            border: 1px solid #ccc;
+            display: none;
+            z-index: 999;
+        }
+
+        #centerCoordinates {
+            position: absolute;
+            bottom: 60px;
+            left: 10px;
+            background-color: white;
+            padding: 10px;
+            border: 1px solid #ccc;
+            display: none;
+            z-index: 999;
+        }
+
+        #pointValues {
+            position: absolute;
+            bottom: 110px;
+            left: 10px;
+            background-color: white;
+            padding: 10px;
+            border: 1px solid #ccc;
+            display: none;
+            z-index: 999;
+        }
+
+        .btn-show-info {
+            cursor: pointer;
+            background-color: #4CAF50;
+            color: #fff;
+            padding: 7px;
+            font: inherit;
+            outline: none;
+            border: none;
+            border-radius: 4px;
+            transition: background-color 0.3s ease-in-out, color 0.3s ease-in-out, transform 0.3s ease-in-out;
+        }
+
+        .cor_inp{
+            padding-bottom: 20px;
+        }
+
+
+    </style>
+
+    <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
+    <link rel="stylesheet" href="https://unpkg.com/leaflet-draw/dist/leaflet.draw.css" />
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/2.0.5/FileSaver.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Blob.js/1.1.1/Blob.min.js"></script>
+</head>
+
+<body>
+<h2 style="text-align: center;">Mapa</h2>
+    <div id="coordinatesInput" class="cor_inp">
+        
+        <input style="border-radius: 5px; padding:7px;margin-right: 20px;" type="number" id="latitudeInput" placeholder="Digite a latitude" >
+
+        
+        <input style="border-radius: 5px; padding:7px;margin-right: 20px;" type="number" id="longitudeInput" placeholder="Digite a longitude" >
+
+        <button type="button" class="btn-show-info" onclick="goToCoordinates()">Ir para a localização</button>
+    </div>
+    <div style="margin-bottom: 20px;" id="map"></div>
+    <div id="areaResult"></div>
+    <div id="centerCoordinates"></div>
+    <div id="pointValues"></div>
+    <div>
+
+        <input type="text" id="fileNameInput" style="border-radius: 5px; padding:7px;margin-right: 20px;" placeholder="Digite o nome do arquivo">
+        <button type="button" class="btn-show-info" style="margin-right: 20px; background-color: green;" onclick="saveData()">Salvar Dados</button>
+        
+
+        <!-- Modifique o botão para chamar a função com o nome do arquivo -->
+        <input type="file" id="fileInput" accept=".json" style="display: none;" onchange="loadFile()">
+        <button type="button" onclick="document.getElementById('fileInput').click()" class="btn-show-info" style="margin-right: 20px; background-color: green;">Selecionar Arquivo</button>
+    </div>
+    <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+    <script src="https://unpkg.com/leaflet-draw/dist/leaflet.draw.js"></script>
+    <script>
+        //inicializar o mapa e funcionalidades
+        var map = L.map('map').setView([-28.388, -53.918], 13);
+
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            attribution: '© OpenStreetMap contributors'
+        }).addTo(map);
+
+        var drawnItems = new L.FeatureGroup();
+        map.addLayer(drawnItems);
+
+        var drawControl = new L.Control.Draw({
+            draw: {
+                polyline: {
+                    shapeOptions: {
+                        color: 'red'
+                    },
+                    showArea: true,
+                    allowIntersection: false,
+                    metric: true,
+                    feet: false,
+                },
+                polygon: false,
+                circle: false,
+                marker: false,
+                rectangle: false
+            },
+            edit: {
+                featureGroup: drawnItems,
+                remove: true,
+            }
+        });
+        map.addControl(drawControl);
+
+        var polyline;
+
+        map.on('draw:created', function (e) {
+            var type = e.layerType,
+                layer = e.layer;
+
+            if (polyline) {
+                map.removeLayer(polyline);
+            }
+
+            drawnItems.addLayer(layer);
+            polyline = layer;
+
+            var latlngs = layer.getLatLngs();
+            latlngs.push(latlngs[0]);
+
+            var closedPolyline = L.polyline(latlngs, { color: 'red' });
+            drawnItems.addLayer(closedPolyline);
+
+            var areaSquareMeters = L.GeometryUtil.geodesicArea(closedPolyline.getLatLngs());
+            var areaSquareMetersFixed = areaSquareMeters.toFixed(2);
+
+            document.getElementById('areaResult').innerHTML = 'Área da linha fechada: ' + areaSquareMetersFixed + ' metros quadrados';
+            document.getElementById('areaResult').style.display = 'block';
+
+            calculateCenterCoordinates(closedPolyline.getLatLngs());
+            showPointValues(closedPolyline.getLatLngs());
+        });
+
+        map.on('draw:edited', function (e) {
+            var layers = e.layers.getLayers();
+            var editedPolyline = layers[0];
+
+            if (editedPolyline instanceof L.Polyline) {
+                var areaSquareMeters = L.GeometryUtil.geodesicArea(editedPolyline.getLatLngs());
+                var areaSquareMetersFixed = areaSquareMeters.toFixed(2);
+
+                document.getElementById('areaResult').innerHTML = 'Área da linha editada: ' + areaSquareMetersFixed + ' metros quadrados';
+                document.getElementById('areaResult').style.display = 'block';
+
+                calculateCenterCoordinates(editedPolyline.getLatLngs());
+                showPointValues(editedPolyline.getLatLngs());
+            }
+        });
+
+        map.on('draw:deleted', function () {
+            calculateArea();
+            showPointValues([]);
+        });
+
+        //Função parad digitar as coordenadas e ir ate ela
+        function goToCoordinates() {
+            var latitude = document.getElementById('latitudeInput').value;
+            var longitude = document.getElementById('longitudeInput').value;
+
+            if (latitude && longitude) {
+                map.setView([parseFloat(latitude), parseFloat(longitude)], 13);
+            }
+        }
+
+        function toggleEditing() {
+            map.editing._enabled = !map.editing._enabled;
+        }
+
+        //Funçãopara calcular a area do poligono
+        function calculateArea() {
+            var layers = drawnItems.getLayers();
+            if (layers.length > 0) {
+                var allLatLngs = layers.map(function (layer) {
+                    return layer.getLatLngs();
+                });
+
+                var allCoords = [].concat.apply([], allLatLngs);
+                allCoords.push(allCoords[0]);
+
+                var closedPolyline = L.polyline(allCoords, { color: 'red' });
+
+                var areaSquareMeters = L.GeometryUtil.geodesicArea(closedPolyline.getLatLngs());
+                var areaSquareMetersFixed = areaSquareMeters.toFixed(2);
+
+                document.getElementById('areaResult').innerHTML = 'Área da linha fechada: ' + areaSquareMetersFixed + ' metros quadrados';
+                document.getElementById('areaResult').style.display = 'block';
+
+                calculateCenterCoordinates(closedPolyline.getLatLngs());
+                showPointValues(closedPolyline.getLatLngs());
+            } else {
+                document.getElementById('areaResult').style.display = 'none';
+                document.getElementById('centerCoordinates').style.display = 'none';
+                document.getElementById('pointValues').style.display = 'none';
+            }
+        }
+
+        function calculateCenterCoordinates(latlngs) {
+            var center = L.latLngBounds(latlngs).getCenter();
+
+            document.getElementById('centerCoordinates').innerHTML = 'Centro: Latitude ' + center.lat.toFixed(6) + ', Longitude ' + center.lng.toFixed(6);
+            document.getElementById('centerCoordinates').style.display = 'block';
+        }
+
+        //Mostrar os valores dos pontos desenhados
+        function showPointValues(latlngs) {
+            var pointValuesDiv = document.getElementById('pointValues');
+
+            if (latlngs.length > 0) {
+                
+               var html = '<table>';
+                html += '<tr><th>Ponto</th><th>Latitude</th><th>Longitude</th></tr>';
+
+                for (var i = 0; i < latlngs.length; i++) {
+                    html += '<tr>';
+                    html += '<td>' + (i + 1) + '</td>';
+                    html += '<td>' + latlngs[i].lat.toFixed(6) + '</td>';
+                    html += '<td>' + latlngs[i].lng.toFixed(6) + '</td>';
+                    html += '</tr>';
+                }
+
+                html += '</table>';
+                pointValuesDiv.innerHTML = html;
+                pointValuesDiv.style.display = 'flex';
+            } else {
+                pointValuesDiv.innerHTML = '';
+                pointValuesDiv.style.display = 'none';
+            }
+        }
+
+        //Função para salvar em um arquivo json
+        function saveData() {
+            var fileName = document.getElementById('fileNameInput').value.trim();
+
+            if (fileName === "") {
+                alert('Digite um nome de arquivo válido.');
+                return;
+            }
+
+            var layers = drawnItems.getLayers();
+            if (layers.length > 0) {
+                var latlngs = layers[0].getLatLngs();
+                var center = L.latLngBounds(latlngs).getCenter();
+                var areaSquareMeters = L.GeometryUtil.geodesicArea(latlngs);
+                var areaSquareMetersFixed = areaSquareMeters.toFixed(2);
+
+                var data = {
+                    polyline: latlngs.map(function (latlng, index) {
+                        return {
+                            ponto: index + 1,
+                            latitude: latlng.lat.toFixed(6),
+                            longitude: latlng.lng.toFixed(6),
+                        };
+                    }),
+                    centro: {
+                        latitude: center.lat.toFixed(6),
+                        longitude: center.lng.toFixed(6),
+                    },
+                    area: areaSquareMetersFixed,
+                };
+
+                var jsonData = JSON.stringify(data, null, 2);
+
+                var blob = new Blob([jsonData], { type: 'application/json' });
+                saveAs(blob, fileName + '.json');
+            } else {
+                alert('Nenhuma linha desenhada para salvar.');
+            }
+        }
+
+
+        // Função para carregar um arquivo JSON e preencher o mapa
+        function loadFile() {
+            var fileInput = document.getElementById('fileInput');
+            var file = fileInput.files[0];
+
+            if (file) {
+                var reader = new FileReader();
+
+                reader.onload = function (e) {
+                    var data = JSON.parse(e.target.result);
+
+                    // Preencher os campos com os dados carregados
+                    document.getElementById('latitudeInput').value = data.centro.latitude;
+                    document.getElementById('longitudeInput').value = data.centro.longitude;
+
+                    // Limpar o mapa antes de adicionar o novo desenho
+                    drawnItems.clearLayers();
+
+                    // Adicionar a polyline ao mapa
+                    var latlngs = data.polyline.map(function (point) {
+                        return L.latLng(parseFloat(point.latitude), parseFloat(point.longitude));
+                    });
+                    var polyline = L.polyline(latlngs, { color: 'red' });
+                    drawnItems.addLayer(polyline);
+
+                    // Adicionar a polyline fechada ao mapa
+                    var closedPolyline = L.polyline(latlngs.concat(latlngs[0]), { color: 'red' });
+                    drawnItems.addLayer(closedPolyline);
+
+                    // Calcular e exibir a área
+                    var areaSquareMeters = L.GeometryUtil.geodesicArea(closedPolyline.getLatLngs());
+                    var areaSquareMetersFixed = areaSquareMeters.toFixed(2);
+                    document.getElementById('areaResult').innerHTML = 'Área da linha fechada: ' + areaSquareMetersFixed + ' metros quadrados';
+                    document.getElementById('areaResult').style.display = 'block';
+
+                    // Calcular e exibir as coordenadas do centro
+                    calculateCenterCoordinates(closedPolyline.getLatLngs());
+
+                    // Exibir os valores dos pontos do desenho
+                    showPointValues(closedPolyline.getLatLngs());
+                };
+
+                reader.readAsText(file);
+            } else {
+                alert('Selecione um arquivo JSON.');
+            }
+        }
+
+    </script>
+</body>
+
+</html>
